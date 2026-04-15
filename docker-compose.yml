@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: escolas-org-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: escolas_org
+      POSTGRES_USER: escolas
+      POSTGRES_PASSWORD: escolas
+    ports:
+      - "5433:5432"
+    volumes:
+      - escolas_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U escolas -d escolas_org"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  escolas_pg_data:
