@@ -8,3 +8,14 @@ coverage/
 .vscode/
 .idea/
 *.tsbuildinfo
+
+# Arquivos brutos de transparência (grandes). Ficam no Google Drive.
+data/*
+!data/README.md
+!data/*/
+data/*/*
+!data/*/README.md
+
+# Dump do banco (grande). Fica no Google Drive.
+db/dump/*
+!db/dump/README.md

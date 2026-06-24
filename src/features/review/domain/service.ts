@@ -1,5 +1,5 @@
 import { badRequest, forbidden, notFound } from '../../../shared/errors/AppError'
-import type { SubmitInput } from './models'
+import type { Review, SubmitInput } from './models'
 import type { ReviewRepository, ReviewEmailSender } from './ports'
 
 const REVIEW_COOLDOWN_DAYS = 180
@@ -25,6 +25,40 @@ export class ReviewService {
     if (!schoolName) throw notFound('Escola não encontrada!')
 
     await this.repo.create(input)
-    await this.email.sendReviewConfirmation(input.email, schoolName)
+
+    void this.email
+      .sendReviewConfirmation(input.email, schoolName)
+      .catch((error: unknown) => console.error('[email] falha ao enviar confirmação de avaliação:', error))
+  }
+
+  async update(
+    reviewId: number,
+    authorizedEmail: string,
+    data: { rating: number; comment: string },
+  ): Promise<Review> {
+    const review = await this.requireOwnedReview(reviewId, authorizedEmail)
+
+    return this.repo.update(review.id, { rating: data.rating, comment: data.comment })
+  }
+
+  async remove(reviewId: number, authorizedEmail: string): Promise<void> {
+    const review = await this.repo.findById(reviewId)
+    if (!review) throw notFound('Avaliação não encontrada!')
+
+    const isOwner = review.email === authorizedEmail
+    const isAdmin = isOwner ? false : await this.repo.isAdmin(authorizedEmail)
+    if (!isOwner && !isAdmin) throw forbidden('Você só pode excluir as suas próprias avaliações.')
+
+    await this.repo.remove(review.id)
+  }
+
+  private async requireOwnedReview(reviewId: number, authorizedEmail: string): Promise<Review> {
+    const review = await this.repo.findById(reviewId)
+    if (!review) throw notFound('Avaliação não encontrada!')
+
+    if (review.email !== authorizedEmail)
+      throw forbidden('Você só pode alterar as suas próprias avaliações.')
+
+    return review
   }
 }

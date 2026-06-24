@@ -21,6 +21,13 @@ const schema = z.object({
   EMAIL_FROM: z.string().default('escolas.org@example.com'),
 
   CORS_ORIGIN: z.string().default('*'),
+
+  S3_ENDPOINT: z.string().default('http://localhost:9000'),
+  S3_PUBLIC_URL: z.string().default('http://localhost:9000'),
+  S3_REGION: z.string().default('us-east-1'),
+  S3_ACCESS_KEY: z.string().default('escolas'),
+  S3_SECRET_KEY: z.string().default('escolas-secret'),
+  S3_BUCKET: z.string().default('escolas-images'),
 })
 
 const parsed = schema.parse(process.env)
@@ -48,6 +55,14 @@ export const config = {
   },
   cors: {
     origin: parsed.CORS_ORIGIN,
+  },
+  s3: {
+    endpoint: parsed.S3_ENDPOINT,
+    publicUrl: parsed.S3_PUBLIC_URL,
+    region: parsed.S3_REGION,
+    accessKey: parsed.S3_ACCESS_KEY,
+    secretKey: parsed.S3_SECRET_KEY,
+    bucket: parsed.S3_BUCKET,
   },
 } as const
 

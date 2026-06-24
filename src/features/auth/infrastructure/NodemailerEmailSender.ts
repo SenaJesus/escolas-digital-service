@@ -86,4 +86,18 @@ export class NodemailerEmailSender implements EmailSender {
     const previewUrl = nodemailer.getTestMessageUrl(info)
     if (previewUrl) console.log(`[email] Preview: ${previewUrl}`)
   }
+
+  async sendUpdateReport(to: string, subject: string, html: string): Promise<void> {
+    await this.ready
+
+    const info = await this.transporter.sendMail({
+      from: this.from,
+      to,
+      subject,
+      html,
+    })
+
+    const previewUrl = nodemailer.getTestMessageUrl(info)
+    if (previewUrl) console.log(`[email] Preview: ${previewUrl}`)
+  }
 }

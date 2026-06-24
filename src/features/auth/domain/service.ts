@@ -23,22 +23,27 @@ export class AuthService {
 
     const code = generateCode()
     await this.repo.upsertForEmail(emailStr, code)
-    await this.email.sendConfirmationCode(emailStr, code)
+
+    void this.email
+      .sendConfirmationCode(emailStr, code)
+      .catch((error: unknown) => console.error('[email] falha ao enviar código:', error))
   }
 
   async confirmAuthorization(emailStr: string, verificationCode: string): Promise<string> {
+    await this.verifyCode(emailStr, verificationCode)
+
+    return this.token.issue(emailStr)
+  }
+
+  async verifyCode(emailStr: string, verificationCode: string): Promise<void> {
     if (!emailStr || !verificationCode) throw badRequest('Email e código são obrigatórios.')
 
     const auth = await this.repo.findValid(emailStr, verificationCode)
     if (!auth) throw badRequest('Código inválido ou expirado.')
 
-    const now = new Date()
     const expiresAt = new Date(auth.created_at.getTime() + 30 * 60 * 1000)
-    if (now > expiresAt) throw badRequest('Código inválido ou expirado.')
+    if (new Date() > expiresAt) throw badRequest('Código inválido ou expirado.')
 
-    const jwt = this.token.issue(emailStr)
     await this.repo.invalidateForEmail(emailStr)
-
-    return jwt
   }
 }
